@@ -4,9 +4,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
-@Entity // this tells hibernate to make table out of this class
-public class UserModel {
+@Entity (name = "user")
+@Table(name = "user")// this tells hibernate to make table out of this class
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
@@ -14,6 +16,11 @@ public class UserModel {
     String name;
     String email;
     String password;
+
+    public User()
+    {
+        
+    }
     
     public void setUserId(long Id)
     {
