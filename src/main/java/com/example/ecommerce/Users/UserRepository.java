@@ -8,10 +8,14 @@ import org.springframework.data.repository.query.Param;
 
 public interface UserRepository extends CrudRepository<User, Long>{
     
-    @Query(value = "SELECT * FROM user WHERE email=:email", nativeQuery = true)
+    @Query(value = "SELECT * FROM Users WHERE email=:email", nativeQuery = true)
     ArrayList<User> findUserByEmail(@Param("email") String email);
 
-    @Query(value = "SELECT * FROM user WHERE email=:email AND password=:password", nativeQuery = true)
+    @Query(value = "SELECT * FROM Users WHERE email=:email AND password=:password", nativeQuery = true)
     User authenticate(@Param("email") String email, @Param("password") String password);
+
+    @Query(value="SELECT * FROM Users_Role_Sync INNER JOIN Users ON (Users.id = Users_Role_Sync.user_id) WHERE Users_Role_Sync.role_id=:roleId",nativeQuery = true)
+    User getUserByRole(@Param("roleId") Long id);
+
     
 }

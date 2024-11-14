@@ -21,7 +21,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/createuser").permitAll() // Allow public access to specific endpoints
+                .requestMatchers("/login").permitAll() // Allow public access to specific endpoints
                 .anyRequest().authenticated() // Require authentication for all other endpoints
             )
             .sessionManagement(session -> session

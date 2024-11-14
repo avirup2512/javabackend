@@ -12,6 +12,9 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.example.ecommerce.GlobalData.CurrentUser;
+import com.example.ecommerce.Users.UserRepository;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +24,10 @@ import jakarta.servlet.http.HttpServletResponse;
 public class JWRequestFilter extends OncePerRequestFilter {
     @Autowired
     private JWTUtil jwtUtil;
+    @Autowired
+    UserRepository userRepository;
+
+    CurrentUser
 
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain) 
@@ -28,7 +35,7 @@ public class JWRequestFilter extends OncePerRequestFilter {
     {
         final String requestPath = req.getServletPath();
         // Skip JWT validation for public endpoints
-        if (requestPath.equals("/login") || requestPath.equals("/createuser")) {
+        if (requestPath.equals("/login")) {
             chain.doFilter(req, res);
             return;
         }
@@ -43,7 +50,7 @@ public class JWRequestFilter extends OncePerRequestFilter {
         }
         if(email != null && SecurityContextHolder.getContext().getAuthentication() == null)
         {
-            if(jwtUtil.validateToken(jwt,email) == true)
+            if(userRepository.findUserByEmail(email).size() > 0)
             {
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                     email,null,new ArrayList<>());

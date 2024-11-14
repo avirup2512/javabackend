@@ -82,6 +82,12 @@ public class JWTUtil {
     Object email = claims.get("email");
     return (String)email;
    }
+   public Long extractId(String token)
+   {
+    final Claims claims = extractAllClaims(token);
+    Object id = claims.get("id");
+    return (Long)id;
+   }
    public Boolean validateToken(String token, String email) {
     final String tokenUseremail = extractEmail(token);
     return (tokenUseremail.equals(email) && !isTokenExpired(token));

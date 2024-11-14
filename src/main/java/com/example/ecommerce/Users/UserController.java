@@ -1,8 +1,11 @@
 package com.example.ecommerce.Users;
 
 import java.net.http.HttpHeaders;
+import java.security.Provider;
 import java.security.SignatureException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -18,6 +21,10 @@ import com.example.ecommerce.Email.EmailServiceInterface;
 import com.example.ecommerce.Email.EmailService;
 import com.example.ecommerce.JWT.JWTUtil;
 import com.example.ecommerce.Response.Response;
+import com.example.ecommerce.Users.UserRole.Privilege.PrivilegeRepository;
+import com.example.ecommerce.Users.UserRole.Privilege.UserPrivilege;
+import com.example.ecommerce.Users.UserRole.Role.RoleRepository;
+import com.example.ecommerce.Users.UserRole.Role.UserRole;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -35,6 +42,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 public class UserController {
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    RoleRepository roleRepository;
+    @Autowired
+    PrivilegeRepository privilegeRepository;
 
     @Autowired
     JWTUtil jwtUtil;
@@ -70,17 +82,30 @@ public class UserController {
     }
 
     @PostMapping("/createuser")
-    public String CreateUser(@RequestParam String userName, @RequestParam String userEmail, @RequestParam String password) {
+    public Response CreateUser(@RequestParam String userName, @RequestParam String userEmail, @RequestParam String password,
+    @RequestParam String roleName, HttpServletRequest req) {
+        Response res = new Response();
         if(isExistsUser(userEmail))
         {
-            return new String("User's email is already exists");
+            res.message = new String("User's email is already exists");
+            return res;
         }else{
-            User u = new User();
-            u.setUserName(userName);
-            u.setEmail(userEmail);
-            u.setPassword(password);
-            userRepository.save(u);
-            return "Saved";
+            UserRole role = roleRepository.findUserRoleByName(roleName);
+            if(role == null)
+            {
+                res.message = new String("User's Role does not exists");
+                return res;
+            }
+            User user = new User();
+            user.setUserName(userName);
+            user.setEmail(userEmail);
+            user.setPassword(password);
+            user.setRoles(Arrays.asList(role));
+            userRepository.save(user);
+            userRepository.save(user);
+            res.message = new String("User has been created");
+            res.data = user;
+            return new Response();
         }
     }
     
