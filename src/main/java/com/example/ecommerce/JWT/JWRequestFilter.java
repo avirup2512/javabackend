@@ -60,8 +60,8 @@ public class JWRequestFilter extends OncePerRequestFilter {
                     email,null,authority);
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                //System.out.println("JI");
-                //System.out.println(SecurityContextHolder.getContext().getAuthentication().getAuthorities());
+                System.out.println("JI");
+                System.out.println(SecurityContextHolder.getContext().getAuthentication());
             }
         }
         chain.doFilter(req, res);

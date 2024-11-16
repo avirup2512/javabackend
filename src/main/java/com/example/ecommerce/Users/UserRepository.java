@@ -7,9 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
 import com.example.ecommerce.Users.UserRole.CustomUserQuery.UserAssignedRolesById;
-import com.example.ecommerce.Users.UserRole.Role.UserRole;
 
-import jakarta.persistence.NamedNativeQuery;
 
 public interface UserRepository extends CrudRepository<User, Long>{
     
@@ -25,6 +23,5 @@ public interface UserRepository extends CrudRepository<User, Long>{
 
     @Query(name = "User.findUserRolesByEmail", nativeQuery = true)
     UserAssignedRolesById searchRoleByUserId(@Param("email") String email);
-
     
 }

@@ -6,9 +6,11 @@ import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,6 +29,7 @@ import com.example.ecommerce.Users.UserRole.Privilege.UserPrivilege;
 import com.example.ecommerce.Users.UserRole.Role.RoleRepository;
 import com.example.ecommerce.Users.UserRole.Role.UserRole;
 
+import jakarta.persistence.Id;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -76,10 +79,30 @@ public class UserController {
     }
 
     @PutMapping("users/edit/{id}")
-    private String editUser(@PathVariable String id, @RequestBody String entity) {
+    private Response editUser(@PathVariable Long id, @RequestBody User entity) {
+        Response res = new Response();
+        Optional<User> userEntity = userRepository.findById(id);
+        User user = userEntity.get();
+        System.out.println(entity);
         
-        
-        return entity;
+        if(user != null && user.getEmail() == SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+        {
+            if(entity.getEmail() != null)
+            user.setEmail(entity.getEmail());
+            if(entity.getUserName() != null)
+            user.setUserName(entity.getUserName());
+
+            userRepository.save(user);
+            res.message = "User has been updated";
+            return res;
+        }else if (user == null)
+        {
+            res.message = "User not found";
+        }else if(user != null && user.getEmail() != SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+        {
+            res.message = "User edit not permitted";
+        }
+        return res;
     }
 
     @PostMapping("/createuser")
