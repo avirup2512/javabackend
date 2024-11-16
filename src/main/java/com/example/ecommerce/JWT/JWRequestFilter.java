@@ -2,9 +2,11 @@ package com.example.ecommerce.JWT;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -27,8 +29,6 @@ public class JWRequestFilter extends OncePerRequestFilter {
     @Autowired
     UserRepository userRepository;
 
-    CurrentUser
-
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain) 
     throws ServletException, IOException
@@ -42,20 +42,26 @@ public class JWRequestFilter extends OncePerRequestFilter {
         final String authorizationHeader = req.getHeader("Authorization");
         
         String email = null;
+        String role = null;
         String jwt = null;
         if(authorizationHeader != null && authorizationHeader.startsWith("Bearer "))
         {
             jwt = authorizationHeader.substring(7);
             email = jwtUtil.extractEmail(jwt);
+            role = jwtUtil.extractRole(jwt);
         }
-        if(email != null && SecurityContextHolder.getContext().getAuthentication() == null)
+        if(email != null && role != null && SecurityContextHolder.getContext().getAuthentication() == null)
         {
             if(userRepository.findUserByEmail(email).size() > 0)
             {
+                List<GrantedAuthority> authority = new ArrayList<GrantedAuthority>();
+                authority.add(new com.example.ecommerce.JWT.GrantedAuthority(role));
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                    email,null,new ArrayList<>());
+                    email,null,authority);
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                //System.out.println("JI");
+                //System.out.println(SecurityContextHolder.getContext().getAuthentication().getAuthorities());
             }
         }
         chain.doFilter(req, res);

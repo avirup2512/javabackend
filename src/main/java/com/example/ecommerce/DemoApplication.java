@@ -17,7 +17,7 @@ public class DemoApplication implements WebMvcConfigurer {
 	}
 	@Override
     public void addInterceptors(InterceptorRegistry registry) {
-      registry.addInterceptor(httPinterceptor).excludePathPatterns("/login","/createuser");
+      registry.addInterceptor(httPinterceptor).excludePathPatterns("/login");
     }
 
 }

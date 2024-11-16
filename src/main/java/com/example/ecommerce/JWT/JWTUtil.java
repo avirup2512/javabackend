@@ -29,18 +29,19 @@ public class JWTUtil {
     private String SECRET_KEY = "ajshdjwbkwbcuweuebbcqwdhiqwhdqdkadiqdh2384238y827hedd287328r9heqdn9238ydakdadbm";
 
     // Generate a JWT Token
-    public String generateToken(String email)
+    public String generateToken(String email, String roleName)
     {
         HashMap<String, Object> claims = new HashMap<String,Object>();
-        return createToken(claims, email);
+        return createToken(claims, email, roleName);
     }
     private SecretKey getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
     }
-    private String createToken(HashMap<String,Object> claims, String subject)
+    private String createToken(HashMap<String,Object> claims, String subject, String roleName)
     {
         claims.put("email",subject);
+        claims.put("role",roleName);
         return Jwts.builder()
             .claims(claims)
             .issuedAt(new Date(0))
@@ -81,6 +82,12 @@ public class JWTUtil {
     final Claims claims = extractAllClaims(token);
     Object email = claims.get("email");
     return (String)email;
+   }
+   public String extractRole(String token)
+   {
+    final Claims claims = extractAllClaims(token);
+    Object role = claims.get("role");
+    return (String)role;
    }
    public Long extractId(String token)
    {

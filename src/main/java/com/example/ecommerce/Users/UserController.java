@@ -21,6 +21,7 @@ import com.example.ecommerce.Email.EmailServiceInterface;
 import com.example.ecommerce.Email.EmailService;
 import com.example.ecommerce.JWT.JWTUtil;
 import com.example.ecommerce.Response.Response;
+import com.example.ecommerce.Users.UserRole.CustomUserQuery.UserAssignedRolesById;
 import com.example.ecommerce.Users.UserRole.Privilege.PrivilegeRepository;
 import com.example.ecommerce.Users.UserRole.Privilege.UserPrivilege;
 import com.example.ecommerce.Users.UserRole.Role.RoleRepository;
@@ -136,7 +137,9 @@ public class UserController {
                 res.message = new String("Credentials are not matched.");
             }else
             {
-                String token = jwtUtil.generateToken(email);
+                UserAssignedRolesById users = userRepository.searchRoleByUserId(email);
+                System.out.println(users.getRoleName());
+                String token = jwtUtil.generateToken(email,users.getRoleName());
                 res.token = token;
                 res.message = new String("Success");
             }
