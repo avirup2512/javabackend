@@ -1,25 +1,25 @@
 package com.example.ecommerce.Users;
 
-import java.net.http.HttpHeaders;
-import java.security.Provider;
-import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 // import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.ecommerce.Audit.AuditModel;
+import com.example.ecommerce.Audit.AuditRepository;
+import com.example.ecommerce.Audit.UserAudit.UserAudit;
 import com.example.ecommerce.Email.EmailModel;
-import com.example.ecommerce.Email.EmailServiceInterface;
+import com.example.ecommerce.GlobalVariable.AuditStatus;
+import com.example.ecommerce.GlobalVariable.CRUDStatus;
+import com.example.ecommerce.GlobalVariable.LoginEnum;
 import com.example.ecommerce.Email.EmailService;
 import com.example.ecommerce.JWT.JWTUtil;
 import com.example.ecommerce.Response.Response;
@@ -58,6 +58,9 @@ public class UserController {
     @Autowired
     EmailService emailService;
 
+    @Autowired
+    AuditRepository auditRepository;
+
     @GetMapping("users/all")
     private Iterable<User> getAllUser() {
         Iterable<User> users = userRepository.findAll();
@@ -73,6 +76,7 @@ public class UserController {
         {
             userRepository.delete(users.get(0));
             res.message = "User has been deleted";
+            this.setAudit(users.get(0), LoginEnum.NONE, AuditStatus.USER, CRUDStatus.DELETE);
         }else
         res.message = "User does not exists.";
         return res;
@@ -85,20 +89,21 @@ public class UserController {
         User user = userEntity.get();
         System.out.println(entity);
         
-        if(user != null && user.getEmail() == SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+        if(user != null && user.getEmail().equals(SecurityContextHolder.getContext().getAuthentication().getPrincipal()))
         {
             if(entity.getEmail() != null)
-            user.setEmail(entity.getEmail());
+            user.setEmail(entity.getEmail()); 
             if(entity.getUserName() != null)
             user.setUserName(entity.getUserName());
 
             userRepository.save(user);
             res.message = "User has been updated";
+            this.setAudit(user, LoginEnum.NONE, AuditStatus.USER, CRUDStatus.UPDATE);
             return res;
         }else if (user == null)
         {
             res.message = "User not found";
-        }else if(user != null && user.getEmail() != SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+        }else if(user != null && !user.getEmail().equals(SecurityContextHolder.getContext().getAuthentication().getPrincipal()))
         {
             res.message = "User edit not permitted";
         }
@@ -126,10 +131,10 @@ public class UserController {
             user.setPassword(password);
             user.setRoles(Arrays.asList(role));
             userRepository.save(user);
-            userRepository.save(user);
+            this.setAudit(user, LoginEnum.NONE, AuditStatus.USER, CRUDStatus.CREATE);
             res.message = new String("User has been created");
             res.data = user;
-            return new Response();
+            return res;
         }
     }
     
@@ -161,10 +166,10 @@ public class UserController {
             }else
             {
                 UserAssignedRolesById users = userRepository.searchRoleByUserId(email);
-                System.out.println(users.getRoleName());
                 String token = jwtUtil.generateToken(email,users.getRoleName());
                 res.token = token;
                 res.message = new String("Success");
+                this.setAudit(user, LoginEnum.LOGGEDIN, AuditStatus.USER, CRUDStatus.NONE);
             }
         }
         return res;
@@ -179,5 +184,20 @@ public class UserController {
         return res;
     }
     
-    
+    void setAudit(User user, LoginEnum loginEnum, AuditStatus auditStatus, CRUDStatus crudStatus)
+    {
+        Object email = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserAudit userAudit = new UserAudit(user,email);
+        AuditModel audit = new AuditModel();
+        if(loginEnum != LoginEnum.NONE)
+        {
+            audit.setMessage(userAudit.createLoginMessage(loginEnum));
+        }
+        if(crudStatus != CRUDStatus.NONE)
+        {
+            audit.setMessage(userAudit.createMessage(crudStatus));
+        }
+        audit.setStatus(auditStatus);
+        auditRepository.save(audit);
+    }
 }
