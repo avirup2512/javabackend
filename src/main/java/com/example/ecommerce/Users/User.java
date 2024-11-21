@@ -2,10 +2,12 @@ package com.example.ecommerce.Users;
 
 import java.util.List;
 
+import com.example.ecommerce.Product.Rating.RatingModel;
 import com.example.ecommerce.Users.Address.AddressModel;
 import com.example.ecommerce.Users.UserRole.CustomUserQuery.UserAssignedRolesById;
 import com.example.ecommerce.Users.UserRole.Role.UserRole;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import jakarta.persistence.CascadeType;
@@ -13,12 +15,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.ColumnResult;
 import jakarta.persistence.ConstructorResult;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedNativeQuery;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SqlResultSetMapping;
@@ -106,5 +110,17 @@ public class User {
 
     public List<AddressModel> getAddress() {
         return this.address;
+    }
+
+    @JsonIgnore
+    @ManyToMany(mappedBy = "users")
+    List<RatingModel> rating;
+
+    public void setRating(List<RatingModel> rating) {
+        this.rating = rating;
+    }
+
+    public List<RatingModel> getRating() {
+        return this.rating;
     }
 }
